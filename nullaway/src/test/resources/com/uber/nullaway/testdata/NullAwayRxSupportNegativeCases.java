@@ -28,6 +28,7 @@ import javax.annotation.Nullable;
 
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
+import io.reactivex.functions.BiPredicate;
 import io.reactivex.functions.Predicate;
 import io.reactivex.functions.Function;
 
@@ -149,6 +150,25 @@ public class NullAwayRxSupportNegativeCases {
                     public ObservableSource<Integer> apply(NullableContainer<String> container) throws Exception {
                         return io.reactivex.Observable.fromIterable(
                                 ImmutableList.of(container.get().length(), container.get().length()));
+                    }
+                });
+    }
+
+    private Observable<NullableContainer<String>> filterThenDistinctUntilChanged(Observable<NullableContainer<String>>
+            observable) {
+        return observable
+                .filter(new Predicate<NullableContainer<String>>() {
+                    @Override
+                    public boolean test(NullableContainer<String> container) throws Exception {
+                        return container.get() != null;
+                    }
+                })
+                .distinctUntilChanged(new BiPredicate<NullableContainer<String>,NullableContainer<String>>() {
+                    @Override
+                    public boolean test(NullableContainer<String> nc1, NullableContainer<String> nc2) {
+                        return nc1.get().length() == nc2.get().length()
+                                && nc1.get().contains(nc2.get())
+                                && nc2.get().contains(nc1.get());
                     }
                 });
     }
